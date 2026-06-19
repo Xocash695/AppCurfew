@@ -10,14 +10,9 @@ import Fluent
 
 struct UserController: RouteCollection {
     func boot(routes: any RoutesBuilder) throws {
-        // register routes here
-        
-        func boot(routes: any RoutesBuilder) throws {
-            routes.post("register", use: register)
-        }
+        routes.post("register", use: register)
     }
-    
-    func register(req: Request) async throws -> User {
+    func register(req: Request) async throws -> User.Public {
         let create = try req.content.decode(User.Create.self)
             
         guard create.password == create.confirmPassword else {
@@ -25,7 +20,7 @@ struct UserController: RouteCollection {
         }
             
         let user = User(
-            name: <#String#>, username: create.username,
+            name: create.name, username: create.username,
             passwordHash: try Bcrypt.hash(create.password)
         )
             
@@ -35,6 +30,6 @@ struct UserController: RouteCollection {
                 throw Abort(.conflict, reason: "Username already taken")
         }
             
-        return user
+        return user.asPublic()
     }
 }

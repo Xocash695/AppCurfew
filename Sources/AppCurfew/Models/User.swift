@@ -63,3 +63,16 @@ extension User: ModelAuthenticatable {
         try Bcrypt.verify(password, created: self.passwordHash)
     }
 }
+
+extension User {
+    struct Public: Content { // for public facing stuff cause we don't want to give back like the password hash
+        var id: UUID?
+        var name: String
+        var username: String
+        // notice: NO passwordHash
+    }
+    func asPublic() -> User.Public {
+        User.Public(id: self.id, name: self.name, username: self.username)
+    }
+}
+

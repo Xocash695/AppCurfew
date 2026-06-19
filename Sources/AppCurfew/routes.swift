@@ -9,6 +9,7 @@ func routes(_ app: Application) throws {
         "Hello, world!"
     }
     
+    try app.register(collection: UserController())  // the registration
     // how to get it say the name?
     app.get("hello", ":name") { req async throws -> String in
         guard let name = req.parameters.get("name") else {

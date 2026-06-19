@@ -1,15 +1,20 @@
 import Vapor
+import Fluent
 
 struct UserAuthenticator: AsyncBasicAuthenticator {
-    nonisolated(unsafe) static var storedPasswordHash: String = ""
-
     func authenticate(
         basic: BasicAuthorization,
         for request: Request
     ) async throws {
-        guard basic.username == "test" else { return }
-        if try await request.password.async.verify(basic.password, created: Self.storedPasswordHash) {
-            request.auth.login(User(name: "Vapor"))
+        guard let user = try await User.query(on: request.db)
+            .filter(\.$username == basic.username)
+            .first()
+        else {
+            return
+        }
+        
+        if try user.verify(password: basic.password) {
+            request.auth.login(user)
         }
     }
 }
