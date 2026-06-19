@@ -1,5 +1,28 @@
 # AppCurfew
 
+AppCurfew is a server-side API built with Swift Vapor that lets a parent 
+manage screen time limits for specific applications on a child's Linux 
+machine.
+
+## How It Works
+
+- A parent creates an account and registers child profiles
+- Each child profile receives a unique, non-expiring API key
+- The child's machine runs a script that authenticates with this API key
+- The script queries the server to check which apps are currently allowed
+- Based on the response, the script can block or allow specific applications
+
+## Tech Stack
+
+- **Vapor** — Swift web framework
+- **Fluent** — ORM, backed by SQLite
+- **Bcrypt** — password hashing for parent accounts
+
+## Status
+
+🚧 Work in progress — currently building out authentication 
+(parent registration/login) before adding child profiles and API key access.
+
 💧 A project built with the Vapor web framework.
 
 ## Getting Started

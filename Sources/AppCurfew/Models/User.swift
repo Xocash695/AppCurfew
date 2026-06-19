@@ -18,8 +18,7 @@ final class User: Model, Content, @unchecked Sendable  {
     @ID(key: .id)
     var id: UUID?
     
-    
-    @Field(key: "name") // fluent storing the name
+    @Field(key: "name")
     var name: String
     
     @Field(key: "username")
@@ -42,6 +41,7 @@ final class User: Model, Content, @unchecked Sendable  {
 
 extension User {
     struct Create: Content {
+        var name: String
         var username: String
         var password: String
         var confirmPassword: String
@@ -50,6 +50,7 @@ extension User {
 
 extension User.Create: Validatable {
     static func validations(_ validations: inout Validations) {
+        validations.add("name", as: String.self, is: !.empty)  // ← add here
         validations.add("username", as: String.self, is: !.empty)
         validations.add("password", as: String.self, is: .count(8...))
     }
