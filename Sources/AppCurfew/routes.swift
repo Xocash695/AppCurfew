@@ -17,9 +17,25 @@ func routes(_ app: Application) throws {
         }
         return "Hello, \(name)!"
     }
-    let protected = app.grouped(UserAuthenticator())
-    protected.post("login") { req -> String in
+    let protected = app.grouped(UserAuthenticator()) // call the user authenticator
+    protected.post("login") { req async throws -> UserToken in
+        let user = try req.auth.require(User.self) // cause we might need to toss an error if no user got authenticated
+        
+        // generating 32 random bytes
+        let tokenValue = [UInt8].random(count: 32).base64  // base64 is safe way of encoding raw bytes as safe printable charters
+        let token = UserToken(value: tokenValue, userID: try user.requireID()) //
+        
+        try await token.save(on: req.db) // takes time to save to the database
+        
+        return token // return the token we created
+    }
+    
+    
+    let tokenProtected = app.grouped(UserToken.authenticator()) // learning how to make a protected end point
+    tokenProtected.get("me") { req -> String in
         try req.auth.require(User.self).name
     }
+    
+    try app.register(collection: ChildProfileController())
 }
 
