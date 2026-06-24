@@ -12,6 +12,8 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateUser())
     app.migrations.add(CreateUserToken())
     app.migrations.add(CreateChildProfile()) // creating the child profilez
+    app.migrations.add(CreateAllowedApp()) // allowing certain apps
+    try app.register(collection: AllowedAppController()) // the controler for allowed apps
     try await app.autoMigrate()
     // register routes
     try routes(app)
