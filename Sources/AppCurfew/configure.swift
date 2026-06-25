@@ -9,6 +9,7 @@ public func configure(_ app: Application) async throws {
 
     app.passwords.use(.bcrypt) // use bcrypt to encrypt the passwords
     app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite) // use sqlite to store the passwords
+    app.databases.use(.sqlite(.file("/Users/akashkallumkal/Source/AppCurfew/db.sqlite")), as: .sqlite)
     app.migrations.add(CreateUser())
     app.migrations.add(CreateUserToken())
     app.migrations.add(CreateChildProfile()) // creating the child profilez

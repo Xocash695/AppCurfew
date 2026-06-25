@@ -20,11 +20,33 @@ final class AllowedApp: Model, Content, @unchecked Sendable {
     @Parent(key: "child_profile_id")
     var childProfile: ChildProfile
     
+    @Field(key: "daily_limit_seconds")
+    var dailyLimitSeconds: Int?      // the FULL allowance, e.g. 1800 for 30 min — never changes
+
+    @Field(key: "remaining_seconds")
+    var remainingSeconds: Int?       // counts down throughout the day
+
+    @Field(key: "last_checked_at")
+    var lastCheckedAt: Date?         // used both for elapsed-time calculation AND detecting a new day
+    
+    @Field(key: "allowed_days")
+    var allowedDays: [Weekday]?
+    
     init() {}
     
-    init(id: UUID? = nil, appIdentifier: String, childProfileID: ChildProfile.IDValue) {
+    init(
+        id: UUID? = nil,
+        appIdentifier: String,
+        childProfileID: ChildProfile.IDValue,
+        dailyLimitSeconds: Int? = nil,
+        allowedDays: [Weekday]? = nil
+    ) {
         self.id = id
         self.appIdentifier = appIdentifier
         self.$childProfile.id = childProfileID
+        self.dailyLimitSeconds = dailyLimitSeconds
+        self.remainingSeconds = dailyLimitSeconds
+        self.lastCheckedAt = nil
+        self.allowedDays = allowedDays
     }
 }

@@ -14,7 +14,11 @@ struct CreateAllowedApp: AsyncMigration {
             .id()
             .field("app_identifier", .string, .required)
             .field("child_profile_id", .uuid, .required, .references("child_profiles", "id"))
-            .unique(on: "child_profile_id", "app_identifier") // preventing duplicate apps being listed 
+            .field("daily_limit_seconds", .int)
+            .field("remaining_seconds", .int)
+            .field("last_checked_at", .datetime)
+            .unique(on: "child_profile_id", "app_identifier")
+            .field("allowed_days", .array(of: .string))
             .create()
     }
     

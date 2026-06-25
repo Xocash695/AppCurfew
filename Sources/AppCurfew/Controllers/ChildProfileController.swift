@@ -30,6 +30,12 @@ struct ChildProfileController: RouteCollection {
     }
     
     func addAllowedApp(req: Request) async throws -> AllowedApp {
+        struct AddAppRequest: Content {
+            var appIdentifier: String
+            var dailyLimitSeconds: Int?
+            var allowedDays: [Weekday]?
+        }
+        
         let user = try req.auth.require(User.self) // get the the parent logged in
         
         guard let childID = req.parameters.get("childID", as: UUID.self) else { // get the child id
@@ -44,12 +50,13 @@ struct ChildProfileController: RouteCollection {
             throw Abort(.forbidden)
         }
         
-        struct AddAppRequest: Content { // to decode what the parent sent
-            var appIdentifier: String
-        }
         let input = try req.content.decode(AddAppRequest.self)
         
-        let app = AllowedApp(appIdentifier: input.appIdentifier, childProfileID: try child.requireID())
+        let app = AllowedApp(
+            appIdentifier: input.appIdentifier,
+            childProfileID: try child.requireID(),
+            dailyLimitSeconds: input.dailyLimitSeconds
+        )
         try await app.save(on: req.db) // save the allowed app
         
         return app
