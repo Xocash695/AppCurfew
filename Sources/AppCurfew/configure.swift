@@ -1,6 +1,7 @@
 import Fluent
 import FluentSQLiteDriver
 import Vapor
+import Leaf
 
 // configures your application
 public func configure(_ app: Application) async throws {
@@ -8,13 +9,18 @@ public func configure(_ app: Application) async throws {
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
     app.passwords.use(.bcrypt) // use bcrypt to encrypt the passwords
-    app.databases.use(.sqlite(.file("db.sqlite")), as: .sqlite) // use sqlite to store the passwords
-    app.databases.use(.sqlite(.file("/Users/akashkallumkal/Source/AppCurfew/db.sqlite")), as: .sqlite)
+    
+    let sqlitePath = Environment.get("SQLITE_FILEPATH") ?? "/Users/akashkallumkal/Source/AppCurfew/db.sqlite"
+    app.databases.use(.sqlite(.file(sqlitePath)), as: .sqlite)
+    app.views.use(.leaf)
+    app.middleware.use(app.sessions.middleware)
+    app.middleware.use(UserSessionAuthenticator())
     app.migrations.add(CreateUser())
     app.migrations.add(CreateUserToken())
     app.migrations.add(CreateChildProfile()) // creating the child profilez
     app.migrations.add(CreateAllowedApp()) // allowing certain apps
-    try app.register(collection: AllowedAppController()) // the controler for allowed apps
+    app.leaf.cache.isEnabled = false // should disable during production
+    try app.register(collection: AllowedAppController()) // the controller for allowed apps
     try await app.autoMigrate()
     // register routes
     try routes(app)

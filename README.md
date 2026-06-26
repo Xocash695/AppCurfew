@@ -48,3 +48,10 @@ swift test
 - [Vapor Documentation](https://docs.vapor.codes)
 - [Vapor GitHub](https://github.com/vapor)
 - [Vapor Community](https://github.com/vapor-community)
+
+
+# Running with apple Containers
+
+container run --rm --name container-local-test --publish 8080:8080 \
+  --env SQLITE_FILEPATH=/app/db.sqlite \
+  container-local-test

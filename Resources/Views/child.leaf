@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AppCurfew - #(child.name)</title>
+</head>
+<body>
+    <h1>#(child.name)</h1>
+    <p>API Key: <code>#(child.apiKey)</code></p>
+    
+    <h2>Allowed Apps</h2>
+    <ul>
+    #for(app in apps):
+        <li>
+            #(app.appIdentifier)
+            #if(app.dailyLimitSeconds):
+                — #(app.remainingSeconds)s / #(app.dailyLimitSeconds)s remaining today
+            #endif
+        </li>
+    #endfor
+    </ul>
+    
+    <h2>Add An App</h2>
+    <form method="POST" action="/children/#(child.id)/allowed-apps">
+        <label>App Identifier: <input type="text" name="appIdentifier" placeholder="com.example.app"></label><br>
+        <label>Daily Limit (seconds, optional): <input type="number" name="dailyLimitSeconds"></label><br>
+        <button type="submit">Add</button>
+    </form>
+    
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>

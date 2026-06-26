@@ -18,3 +18,24 @@ struct UserAuthenticator: AsyncBasicAuthenticator {
         }
     }
 }
+
+struct UserSessionAuthenticator: AsyncSessionAuthenticator {
+    typealias User = AppCurfew.User
+    
+    func authenticate(sessionID: String, for request: Request) async throws {
+        print("Authenticating with sessionID: \(sessionID)")
+        
+        guard let userID = UUID(uuidString: sessionID) else {
+            print("Could not parse sessionID as UUID!")
+            return
+        }
+        
+        guard let user = try await AppCurfew.User.find(userID, on: request.db) else {
+            print("No user found with ID: \(userID)")
+            return
+        }
+        
+        request.auth.login(user)
+ 
+    }
+}

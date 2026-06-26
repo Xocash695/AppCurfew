@@ -1,0 +1,13 @@
+<h1>Your Children</h1>
+
+<ul>
+#for(child in children):
+    <li><a href="/children/#(child.id)">#(child.name)</a></li>
+#endfor
+</ul>
+
+<h2>Add A Child</h2>
+<form method="POST" action="/dashboard/children">
+    <label>Name: <input type="text" name="name"></label>
+    <button type="submit">Create</button>
+</form>

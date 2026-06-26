@@ -76,3 +76,9 @@ extension User {
     }
 }
 
+
+extension User: SessionAuthenticatable { // making the user session authenticatable
+    var sessionID: String {
+        self.id!.uuidString
+    }
+}

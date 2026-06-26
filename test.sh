@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_URL="http://localhost:8080"
+BASE_URL="http://0.0.0.0:8080"
 USERNAME="testuser_$(date +%s)"
 PASSWORD="secret123"
 
@@ -14,7 +14,7 @@ echo ""
 echo "=== Login ==="
 LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/login" -u "$USERNAME:$PASSWORD")
 echo "$LOGIN_RESPONSE"
-TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"value":"[^"]*"' | cut -d'"' -f4)
+TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.value')
 echo "Token: $TOKEN"
 echo ""
 
@@ -25,8 +25,8 @@ CHILD_RESPONSE=$(curl -s -X POST "$BASE_URL/children" \
   -d '{"name":"Timmy"}')
 echo "$CHILD_RESPONSE"
 
-CHILD_ID=$(echo "$CHILD_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-API_KEY=$(echo "$CHILD_RESPONSE" | grep -o '"apiKey":"[^"]*"' | cut -d'"' -f4)
+CHILD_ID=$(echo "$CHILD_RESPONSE" | jq -r '.id')
+API_KEY=$(echo "$CHILD_RESPONSE" | jq -r '.apiKey')
 echo "Child ID: $CHILD_ID"
 echo "API Key: $API_KEY"
 echo ""
