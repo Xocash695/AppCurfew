@@ -20,7 +20,7 @@
     </ul>
     
     <h2>Add An App</h2>
-    <form method="POST" action="/children/#(child.id)/allowed-apps">
+  <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps">
         <label>App Identifier: <input type="text" name="appIdentifier" placeholder="com.example.app"></label><br>
         <label>Daily Limit (seconds, optional): <input type="number" name="dailyLimitSeconds"></label><br>
         <button type="submit">Add</button>

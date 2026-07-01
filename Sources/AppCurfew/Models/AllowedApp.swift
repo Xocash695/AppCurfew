@@ -37,7 +37,7 @@ final class AllowedApp: Model, Content, @unchecked Sendable {
     init(
         id: UUID? = nil,
         appIdentifier: String,
-        childProfileID: ChildProfile.IDValue,
+        childProfileID: IDValue,
         dailyLimitSeconds: Int? = nil,
         allowedDays: [Weekday]? = nil
     ) {

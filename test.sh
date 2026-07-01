@@ -57,3 +57,22 @@ echo "=== Check Allowed Apps Again — should now be EMPTY ==="
 curl -s -X GET "$BASE_URL/allowed-apps" \
   -H "Authorization: Bearer $API_KEY"
 echo ""
+echo ""
+
+echo "=== Report Installed Apps ==="
+curl -s -X POST "$BASE_URL/installed-apps" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"apps":[{"id":"com.valvesoftware.Steam","name":"Steam"},{"id":"com.discordapp.Discord","name":"Discord"},{"id":"org.mozilla.firefox","name":"Firefox"}]}'
+echo ""
+echo "(expect HTTP 200 with empty body)"
+echo ""
+
+echo "=== Report Installed Apps Again (simulating Discord being uninstalled) ==="
+curl -s -X POST "$BASE_URL/installed-apps" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"apps":[{"id":"com.valvesoftware.Steam","name":"Steam"},{"id":"org.mozilla.firefox","name":"Firefox"}]}'
+echo ""
+echo "(expect HTTP 200 with empty body — Discord should now be gone from the DB)"
+echo ""
