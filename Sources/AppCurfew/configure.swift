@@ -21,6 +21,8 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateAllowedApp()) // allowing certain apps
     app.leaf.cache.isEnabled = false // should disable during production
     app.migrations.add(CreateInstalledApp()) // report the installed apps on the system flatpaks
+    app.migrations.add(CreateServerSettings()) // server-wide settings table
+    app.migrations.add(SeedServerSettings()) // seed the single settings row
     try app.register(collection: AllowedAppController()) // the controller for allowed apps
     try await app.autoMigrate()
     // register routes

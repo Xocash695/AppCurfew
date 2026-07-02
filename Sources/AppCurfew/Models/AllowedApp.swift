@@ -32,6 +32,15 @@ final class AllowedApp: Model, Content, @unchecked Sendable {
     @Field(key: "allowed_days")
     var allowedDays: [Weekday]?
     
+    @Field(key: "available_from")      // ← add here
+    var availableFrom: String?
+      
+    @Field(key: "available_until")     // ← add here
+    var availableUntil: String?
+
+    @Field(key: "bypass_active")
+    var bypassActive: Bool
+
     init() {}
     
     init(
@@ -39,7 +48,10 @@ final class AllowedApp: Model, Content, @unchecked Sendable {
         appIdentifier: String,
         childProfileID: IDValue,
         dailyLimitSeconds: Int? = nil,
-        allowedDays: [Weekday]? = nil
+        allowedDays: [Weekday]? = nil,
+        availableFrom: String? = nil,
+        availableUntil: String? = nil,
+        bypassActive: Bool = false
     ) {
         self.id = id
         self.appIdentifier = appIdentifier
@@ -48,5 +60,8 @@ final class AllowedApp: Model, Content, @unchecked Sendable {
         self.remainingSeconds = dailyLimitSeconds
         self.lastCheckedAt = nil
         self.allowedDays = allowedDays
+        self.availableFrom = availableFrom
+        self.availableUntil = availableUntil
+        self.bypassActive = bypassActive
     }
 }

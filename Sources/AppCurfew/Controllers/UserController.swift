@@ -18,10 +18,20 @@ struct UserController: RouteCollection {
         guard create.password == create.confirmPassword else {
                 throw Abort(.badRequest, reason: "Passwords did not match")
         }
-            
+
+        let settings = try await ServerSettings.query(on: req.db).first()
+        if settings?.registrationEnabled == false {
+            throw Abort(.forbidden, reason: "Registration is currently disabled")
+        }
+
+        // The very first registered user becomes the admin.
+        let userCount = try await User.query(on: req.db).count()
+        let isAdmin = userCount == 0
+
         let user = User(
             name: create.name, username: create.username,
-            passwordHash: try Bcrypt.hash(create.password)
+            passwordHash: try Bcrypt.hash(create.password),
+            isAdmin: isAdmin
         )
             
         do {

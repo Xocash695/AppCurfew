@@ -1,31 +1,181 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>AppCurfew - #(child.name)</title>
-</head>
-<body>
-    <h1>#(child.name)</h1>
-    <p>API Key: <code>#(child.apiKey)</code></p>
-    
-    <h2>Allowed Apps</h2>
-    <ul>
-    #for(app in apps):
-        <li>
-            #(app.appIdentifier)
-            #if(app.dailyLimitSeconds):
-                — #(app.remainingSeconds)s / #(app.dailyLimitSeconds)s remaining today
-            #endif
-        </li>
-    #endfor
-    </ul>
-    
-    <h2>Add An App</h2>
-  <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps">
-        <label>App Identifier: <input type="text" name="appIdentifier" placeholder="com.example.app"></label><br>
-        <label>Daily Limit (seconds, optional): <input type="number" name="dailyLimitSeconds"></label><br>
-        <button type="submit">Add</button>
+ #extend("base"):
+#export("title"):#(child.name)#endexport
+#export("content"):
+<div class="flex items-center justify-between mb-1">
+    <h1 class="font-display text-3xl font-bold text-ink">#(child.name)</h1>
+    <form method="POST" action="/logout">
+        <button type="submit" class="text-sm text-ink-muted hover:text-red-400 transition">Logout</button>
     </form>
-    
-    <a href="/dashboard">Back to Dashboard</a>
-</body>
-</html>
+</div>
+<form method="POST" action="/dashboard/children/#(child.id)/delete"
+      onsubmit="return confirm('Delete #(child.name) and all their settings? This cannot be undone.')">
+    <button type="submit" class="text-sm text-red-400 hover:text-red-300 transition">
+        Delete this child
+    </button>
+</form>
+<div class="mb-8 flex items-center gap-2 text-sm text-ink-muted">
+    <span>API key:</span>
+    <code id="apiKey"
+          data-key="#(child.apiKey)"
+          class="rounded bg-white px-2 py-0.5 text-clay/90 text-xs tracking-wider">••••••••••••••••</code>
+    <button type="button" onclick="toggleKey()"
+            id="toggleBtn"
+            class="rounded-lg border border-ink/15 px-2.5 py-1 text-xs text-ink-muted hover:text-ink hover:border-teal/60 transition">
+        Show
+    </button>
+    <button type="button" onclick="copyKey()"
+            id="copyBtn"
+            class="rounded-lg border border-ink/15 px-2.5 py-1 text-xs text-ink-muted hover:text-ink hover:border-teal/60 transition">
+        Copy
+    </button>
+</div>
+
+<script>
+    let revealed = false;
+
+    function toggleKey() {
+        const code = document.getElementById('apiKey');
+        const btn = document.getElementById('toggleBtn');
+        revealed = !revealed;
+        code.textContent = revealed ? code.dataset.key : '••••••••••••••••';
+        btn.textContent = revealed ? 'Hide' : 'Show';
+    }
+
+    function copyKey() {
+        const code = document.getElementById('apiKey');
+        const btn = document.getElementById('copyBtn');
+        navigator.clipboard.writeText(code.dataset.key).then(() => {
+            btn.textContent = 'Copied!';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        });
+    }
+</script>
+<h2 class="font-display text-lg font-semibold text-ink mb-4">Allowed apps</h2>
+<div class="space-y-3 mb-12">
+#for(app in apps):
+    <div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-4 flex items-center justify-between gap-4">
+        <div>
+            <div class="font-medium text-ink">#(app.appIdentifier)</div>
+            <div class="text-sm text-ink-muted mt-0.5">
+               #if(app.limitFormatted):
+                    <span class="text-clay">#(app.remainingFormatted)</span> of #(app.limitFormatted) left today
+               #else:
+                    No time limit
+               #endif
+                ·
+                #if(app.allowedDays):
+                    #for(day in app.allowedDays):<span class="inline-block rounded bg-ink/[0.05] px-1.5 py-0.5 text-xs mr-1">#(day)</span>#endfor
+                #else:
+                    every day
+                #endif
+                #if(app.availableFrom || app.availableUntil):
+                    #if(app.availableFrom):
+                        #(app.availableFrom)
+                    #endif
+                    –
+                    #if(app.availableUntil):
+                        #(app.availableUntil)
+                    #endif
+            #endif
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            #if(app.bypassActive):
+                <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/unbypass">
+                    <button type="submit"
+                            class="rounded-lg border border-sage px-3 py-1.5 text-sm text-sage-600 bg-sage/5 transition">
+                        Bypass active — click to restore limits
+                    </button>
+                </form>
+            #else:
+                <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/bypass">
+                    <button type="submit"
+                            class="rounded-lg border border-ink/15 px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:border-teal/60 transition">
+                        Bypass limits for now
+                    </button>
+                </form>
+            #endif
+            <a href="/children/#(child.id)?edit=#(app.id)"
+               class="rounded-lg border border-ink/15 px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:border-teal/60 transition">
+                Edit
+            </a>
+            <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/delete">
+                <button type="submit"
+                        class="rounded-lg border border-red-500/40 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition">
+                    Remove
+                </button>
+            </form>
+        </div>
+    </div>
+#endfor
+</div>
+
+<div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="font-display text-lg font-semibold text-ink">#if(editingApp):Update app#else:Allow an app#endif</h2>
+        #if(editingApp):
+            <a href="/children/#(child.id)" class="text-sm text-ink-muted hover:text-ink transition">Cancel edit</a>
+        #endif
+    </div>
+    <form method="POST" action="#if(editingApp):/dashboard/children/#(child.id)/allowed-apps/#(editingApp.id)/edit#else:/dashboard/children/#(child.id)/allowed-apps#endif" class="space-y-4">
+        <div>
+            <label class="block text-sm text-ink-muted mb-1">App</label>
+            <select name="appIdentifier"
+                    class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+            #for(app in installedApps):
+                <option value="#(app.appIdentifier)"#if(editingApp):#if(app.appIdentifier == editingApp.appIdentifier): selected#endif#endif>#(app.displayName)</option>
+            #endfor
+            </select>
+        </div>
+        <div class="flex gap-3">
+            <div class="flex-1">
+               <label class="block text-sm text-ink-muted mb-1">Daily limit (optional)</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="number" name="limitHours" min="0" placeholder="0"#if(editingApp): value="#(editingApp.hoursValue)"#endif
+                               class="w-20 rounded-lg bg-white border border-ink/15 px-3 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+                        <span class="text-ink-muted text-sm">h</span>
+                        <input type="number" name="limitMinutes" min="0" max="59" placeholder="30"#if(editingApp): value="#(editingApp.minutesValue)"#endif
+                               class="w-20 rounded-lg bg-white border border-ink/15 px-3 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+                        <span class="text-ink-muted text-sm">m</span>
+                    </div>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <div class="flex-1">
+                <label class="block text-sm text-ink-muted mb-1">Available from (optional)</label>
+                <input type="time" name="availableFrom"#if(editingApp): value="#(editingApp.availableFrom)"#endif
+                       class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm text-ink-muted mb-1">Until (optional)</label>
+                <input type="time" name="availableUntil"#if(editingApp): value="#(editingApp.availableUntil)"#endif
+                       class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+            </div>
+        </div>
+        <fieldset>
+            <legend class="text-sm text-ink-muted mb-2">Allowed days <span class="text-ink-faint">(none checked = every day)</span></legend>
+            <div class="flex flex-wrap gap-2">
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="monday" class="sr-only"#if(editingApp.monday): checked#endif> Mon</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="tuesday" class="sr-only"#if(editingApp.tuesday): checked#endif> Tue</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="wednesday" class="sr-only"#if(editingApp.wednesday): checked#endif> Wed</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="thursday" class="sr-only"#if(editingApp.thursday): checked#endif> Thu</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="friday" class="sr-only"#if(editingApp.friday): checked#endif> Fri</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="saturday" class="sr-only"#if(editingApp.saturday): checked#endif> Sat</label>
+                <label class="cursor-pointer rounded-lg border border-ink/15 px-3 py-1.5 text-sm has-[:checked]:border-teal has-[:checked]:bg-teal/5 has-[:checked]:text-teal">
+                    <input type="checkbox" name="allowedDays[]" value="sunday" class="sr-only"#if(editingApp.sunday): checked#endif> Sun</label>
+            </div>
+        </fieldset>
+        <button type="submit"
+                class="rounded-lg bg-clay px-6 py-2.5 font-medium text-white hover:bg-clay-600 transition shadow-sm">
+            #if(editingApp):Update app#else:Allow app#endif
+        </button>
+    </form>
+</div>
+#endexport
+#endextend

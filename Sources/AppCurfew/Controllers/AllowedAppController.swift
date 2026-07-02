@@ -20,8 +20,17 @@ struct AllowedAppController: RouteCollection {
         var allowedNames: [String] = []
         let now = Date()
         let todayWeekdayNumber = Calendar.current.component(.weekday, from: now)
-        
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        let nowTime = timeFormatter.string(from: now)
+
         for app in apps {
+            // Manual bypass short-circuits every other restriction
+            if app.bypassActive {
+                allowedNames.append(app.appIdentifier)
+                continue
+            }
+
             // NEW: day-of-week gate, checked FIRST
             if let allowedDays = app.allowedDays {
                 let isTodayAllowed = allowedDays.contains { $0.calendarValue == todayWeekdayNumber }
@@ -29,7 +38,10 @@ struct AllowedAppController: RouteCollection {
                     continue  // skip this app entirely, wrong day
                 }
             }
-            
+
+            if let from = app.availableFrom, nowTime < from { continue }
+            if let until = app.availableUntil, nowTime > until { continue }
+
             // existing time-limit logic continues below, unchanged
             guard app.dailyLimitSeconds != nil else {
                 allowedNames.append(app.appIdentifier)

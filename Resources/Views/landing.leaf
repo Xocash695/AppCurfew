@@ -1,0 +1,24 @@
+#extend("base"):
+#export("title"):Home#endexport
+#export("content"):
+<div class="max-w-2xl mx-auto mt-16 text-center">
+    <h1 class="font-display text-4xl font-bold text-ink mb-4">
+        Screen time that <span class="text-clay">works for families</span>
+    </h1>
+    <p class="text-ink-muted text-lg mb-10">
+        AppCurfew is a simple way to set daily limits, allowed days, and time windows
+        for the apps on your kids' devices — and adjust them in seconds when life happens.
+    </p>
+    <div class="flex items-center justify-center gap-3">
+        <a href="/login"
+           class="rounded-lg bg-clay px-6 py-2.5 font-medium text-white hover:bg-clay-600 transition shadow-sm">
+            Log in
+        </a>
+        <a href="/register"
+           class="rounded-lg border border-ink/15 px-6 py-2.5 font-medium text-ink/90 hover:text-ink hover:border-teal/60 transition">
+            Register
+        </a>
+    </div>
+</div>
+#endexport
+#endextend

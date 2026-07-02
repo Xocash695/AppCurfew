@@ -1,13 +1,53 @@
-<h1>Your Children</h1>
+#extend("base"):
+#export("title"):Dashboard#endexport
+#export("content"):
+<div class="flex items-center justify-between mb-8">
+    <h1 class="font-display text-3xl font-bold text-ink">Your children</h1>
+    <form method="POST" action="/logout">
+        <button type="submit" class="text-sm text-ink-muted hover:text-red-400 transition">Logout</button>
+    </form>
+</div>
 
-<ul>
+<div class="grid gap-4 sm:grid-cols-2 mb-12">
 #for(child in children):
-    <li><a href="/children/#(child.id)">#(child.name)</a></li>
+    <a href="/children/#(child.id)"
+       class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-5 hover:border-teal/60 transition group">
+        <div class="font-display text-lg font-semibold text-ink group-hover:text-teal transition">#(child.name)</div>
+        <div class="text-sm text-ink-muted mt-1">Manage apps & limits →</div>
+    </a>
 #endfor
-</ul>
+</div>
 
-<h2>Add A Child</h2>
-<form method="POST" action="/dashboard/children">
-    <label>Name: <input type="text" name="name"></label>
-    <button type="submit">Create</button>
-</form>
+<div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-6">
+    <h2 class="font-display text-lg font-semibold text-ink mb-4">Add a child</h2>
+    <form method="POST" action="/dashboard/children" class="flex gap-3">
+        <input type="text" name="name" placeholder="Name"
+               class="flex-1 rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+        <button type="submit"
+                class="rounded-lg bg-clay px-5 font-medium text-white hover:bg-clay-600 transition shadow-sm">
+            Create
+        </button>
+    </form>
+</div>
+
+#if(isAdmin):
+<div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-6 mt-6">
+    <h2 class="font-display text-lg font-semibold text-ink mb-2">Admin — Registration</h2>
+    <p class="text-sm text-ink-muted mb-4">
+        New user registration is currently
+        #if(registrationEnabled):
+            <span class="text-clay">enabled</span>.
+        #else:
+            <span class="text-red-400">disabled</span>.
+        #endif
+    </p>
+    <form method="POST" action="/dashboard/toggle-registration">
+        <button type="submit"
+                class="rounded-lg border border-ink/15 px-4 py-2 text-sm text-ink/90 hover:text-ink hover:border-teal/60 transition">
+            #if(registrationEnabled):Disable registration#else:Enable registration#endif
+        </button>
+    </form>
+</div>
+#endif
+#endexport
+#endextend

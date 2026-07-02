@@ -17,6 +17,7 @@ struct CreateUser: AsyncMigration { // to create the user database in the databa
             .field("username", .string, .required)
             .unique(on: "username")  // ← prevents duplicates for usernames
             .field("password_hash", .string, .required)
+            .field("is_admin", .bool, .required, .sql(.default(false)))
             .create()
         
 

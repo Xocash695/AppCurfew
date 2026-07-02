@@ -19,6 +19,9 @@ struct CreateAllowedApp: AsyncMigration {
             .field("last_checked_at", .datetime)
             .unique(on: "child_profile_id", "app_identifier")
             .field("allowed_days", .array(of: .string))
+            .field("available_from", .string)
+            .field("available_until", .string)
+            .field("bypass_active", .bool, .required, .sql(.default(false)))
             .create()
     }
     
