@@ -23,6 +23,7 @@ public func configure(_ app: Application) async throws {
     app.migrations.add(CreateInstalledApp()) // report the installed apps on the system flatpaks
     app.migrations.add(CreateServerSettings()) // server-wide settings table
     app.migrations.add(SeedServerSettings()) // seed the single settings row
+    app.migrations.add(CreatePasswordResetCode()) // password reset codes
     try app.register(collection: AllowedAppController()) // the controller for allowed apps
     try await app.autoMigrate()
     // register routes

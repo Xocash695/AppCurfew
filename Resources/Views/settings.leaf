@@ -1,0 +1,60 @@
+#extend("base"):
+#export("title"):Settings#endexport
+#export("content"):
+<div class="flex items-center justify-between mb-8">
+    <h1 class="font-display text-3xl font-bold text-ink">Account settings</h1>
+    <a href="/dashboard" class="text-sm text-ink-muted hover:text-teal transition">Back to dashboard</a>
+</div>
+
+#if(error):
+<div class="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+    #(error)
+</div>
+#endif
+
+#if(saved):
+<div class="mb-6 rounded-lg border border-sage/40 bg-sage/10 px-4 py-3 text-sm text-sage-600">
+    Your password has been updated.
+</div>
+#endif
+
+<div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-6 mb-6">
+    <h2 class="font-display text-lg font-semibold text-ink mb-4">Change password</h2>
+    <form method="POST" action="/dashboard/change-password" class="space-y-4">
+        <div>
+            <label class="block text-sm text-ink-muted mb-1">Current password</label>
+            <input type="password" name="currentPassword"
+                   class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-ink-muted mb-1">New password</label>
+            <input type="password" name="newPassword"
+                   class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-ink-muted mb-1">Confirm new password</label>
+            <input type="password" name="confirmPassword"
+                   class="w-full rounded-lg bg-white border border-ink/15 px-4 py-2.5 text-ink placeholder:text-ink-faint focus:border-teal focus:ring-1 focus:ring-teal/30 focus:outline-none">
+        </div>
+        <button type="submit"
+                class="rounded-lg bg-clay px-6 py-2.5 font-medium text-white hover:bg-clay-600 transition shadow-sm">
+            Update password
+        </button>
+    </form>
+</div>
+
+<div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-6">
+    <h2 class="font-display text-lg font-semibold text-ink mb-2">Delete account</h2>
+    <p class="text-sm text-ink-muted mb-4">
+        Permanently delete your account along with all children, apps, and settings. This cannot be undone.
+    </p>
+    <form method="POST" action="/dashboard/delete-account"
+          onsubmit="return confirm('Delete your account and everything in it? This cannot be undone.')">
+        <button type="submit"
+                class="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition">
+            Delete my account
+        </button>
+    </form>
+</div>
+#endexport
+#endextend

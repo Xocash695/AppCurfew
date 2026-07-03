@@ -17,9 +17,16 @@ struct WebController: RouteCollection {
             routes.get("register", use: showRegister)
             routes.post("web-register", use: webRegister)
             routes.post("logout", use: logout)
+            routes.get("forgot-password", use: showForgotPassword)
+            routes.post("forgot-password", use: submitForgotPassword)
+            routes.get("reset-password", use: showResetPassword)
+            routes.post("reset-password", use: submitResetPassword)
             routes.get("dashboard", use: dashboard)
             routes.post("dashboard", "children", use: createChild)
             routes.post("dashboard", "toggle-registration", use: toggleRegistration)
+            routes.get("dashboard", "settings", use: showSettings)
+            routes.post("dashboard", "change-password", use: changePassword)
+            routes.post("dashboard", "delete-account", use: deleteAccount)
             routes.get("children", ":childID", use: showChild)
             routes.post("dashboard", "children", ":childID", "allowed-apps", use: addAllowedAppWeb)  // ← changed
             routes.post("dashboard", "children", ":childID", "allowed-apps", ":appID", "delete", use: deleteAllowedApp)
@@ -126,6 +133,89 @@ struct WebController: RouteCollection {
         return req.redirect(to: "/login")
     }
 
+    // MARK: - Forgot / Reset Password
+
+    func showForgotPassword(req: Request) async throws -> View {
+        return try await req.view.render("forgot-password")
+    }
+
+    struct ForgotPasswordFormData: Content {
+        var username: String
+    }
+
+    func submitForgotPassword(req: Request) async throws -> Response {
+        let form = try req.content.decode(ForgotPasswordFormData.self)
+
+        // Neutral message shown whether or not the account exists (prevents enumeration).
+        let neutralMessage = "If that account exists, a code has been generated — check the server console."
+
+        if let user = try await User.query(on: req.db)
+            .filter(\.$username == form.username)
+            .first() {
+            let userID = try user.requireID()
+
+            // Remove any existing codes so old ones can't linger.
+            try await PasswordResetCode.query(on: req.db)
+                .filter(\.$user.$id == userID)
+                .delete()
+
+            let code = String(format: "%06d", Int.random(in: 0...999999))
+            let expiresAt = Date().addingTimeInterval(15 * 60)
+            let resetCode = PasswordResetCode(code: code, expiresAt: expiresAt, userID: userID)
+            try await resetCode.save(on: req.db)
+
+            print("Password reset code for \(user.username): \(code)")
+        }
+
+        return try await req.view.render("forgot-password", ["message": neutralMessage]).encodeResponse(for: req)
+    }
+
+    func showResetPassword(req: Request) async throws -> View {
+        return try await req.view.render("reset-password")
+    }
+
+    struct ResetPasswordFormData: Content {
+        var username: String
+        var code: String
+        var newPassword: String
+        var confirmPassword: String
+    }
+
+    func submitResetPassword(req: Request) async throws -> Response {
+        let form = try req.content.decode(ResetPasswordFormData.self)
+
+        guard form.newPassword == form.confirmPassword else {
+            return try await req.view.render("reset-password", ["error": "New passwords do not match"]).encodeResponse(for: req)
+        }
+
+        guard let user = try await User.query(on: req.db)
+            .filter(\.$username == form.username)
+            .first() else {
+            // Same non-revealing message as an invalid code.
+            return try await req.view.render("reset-password", ["error": "Invalid or expired code"]).encodeResponse(for: req)
+        }
+
+        let userID = try user.requireID()
+
+        guard let resetCode = try await PasswordResetCode.query(on: req.db)
+            .filter(\.$user.$id == userID)
+            .filter(\.$code == form.code)
+            .first(),
+              resetCode.expiresAt > Date() else {
+            return try await req.view.render("reset-password", ["error": "Invalid or expired code"]).encodeResponse(for: req)
+        }
+
+        user.passwordHash = try Bcrypt.hash(form.newPassword)
+        try await user.save(on: req.db)
+
+        // Invalidate all codes for this user, including the one just used.
+        try await PasswordResetCode.query(on: req.db)
+            .filter(\.$user.$id == userID)
+            .delete()
+
+        return req.redirect(to: "/login")
+    }
+
     // MARK: - Dashboard
 
     struct DashboardContext: Encodable {
@@ -166,6 +256,78 @@ struct WebController: RouteCollection {
         return req.redirect(to: "/dashboard")
     }
     
+    // MARK: - Settings
+
+    struct SettingsContext: Encodable {
+        var error: String?
+        var saved: Bool
+    }
+
+    func showSettings(req: Request) async throws -> View {
+        _ = try req.auth.require(User.self)
+        let saved = (try? req.query.get(Bool.self, at: "saved")) ?? false
+        return try await req.view.render("settings", SettingsContext(error: nil, saved: saved))
+    }
+
+    struct ChangePasswordFormData: Content {
+        var currentPassword: String
+        var newPassword: String
+        var confirmPassword: String
+    }
+
+    func changePassword(req: Request) async throws -> Response {
+        let user = try req.auth.require(User.self)
+        let form = try req.content.decode(ChangePasswordFormData.self)
+
+        guard form.newPassword == form.confirmPassword else {
+            return try await req.view.render("settings", ["error": "New passwords do not match"]).encodeResponse(for: req)
+        }
+
+        guard try user.verify(password: form.currentPassword) else {
+            return try await req.view.render("settings", ["error": "Current password is incorrect"]).encodeResponse(for: req)
+        }
+
+        user.passwordHash = try Bcrypt.hash(form.newPassword)
+        try await user.save(on: req.db)
+
+        return req.redirect(to: "/dashboard/settings?saved=true")
+    }
+
+    func deleteAccount(req: Request) async throws -> Response {
+        let user = try req.auth.require(User.self)
+        let userID = try user.requireID()
+
+        // Cascade delete everything owned by this user.
+        let children = try await ChildProfile.query(on: req.db)
+            .filter(\.$parent.$id == userID)
+            .all()
+
+        for child in children {
+            let childID = try child.requireID()
+
+            try await AllowedApp.query(on: req.db)
+                .filter(\.$childProfile.$id == childID)
+                .delete()
+
+            try await InstalledApp.query(on: req.db)
+                .filter(\.$childProfile.$id == childID)
+                .delete()
+
+            try await child.delete(on: req.db)
+        }
+
+        try await UserToken.query(on: req.db)
+            .filter(\.$user.$id == userID)
+            .delete()
+
+        try await user.delete(on: req.db)
+
+        req.session.unauthenticate(User.self)
+        req.session.destroy()
+        req.auth.logout(User.self)
+        return req.redirect(to: "/")
+    }
+
     // MARK: - Create Child
     
     struct CreateChildFormData: Content {

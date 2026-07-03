@@ -6,7 +6,7 @@
     <title>#import("title") — AppCurfew</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
     tailwind.config = {
         theme: {
@@ -15,13 +15,15 @@
                     page: '#FAF8F3',
                     ink: { DEFAULT: '#211A14', muted: '#6B5D4F', faint: '#A69A8C' },
                     sand: '#E5C185',
+                    cream: '#EDE6D8',
                     clay: { DEFAULT: '#C7522A', 600: '#A8461F' },
                     teal: { DEFAULT: '#007575', 600: '#005F5F' },
                     sage: { DEFAULT: '#5F8F72', 600: '#4C7460' }
                 },
                 fontFamily: {
                     display: ['Sora', 'sans-serif'],
-                    body: ['Inter', 'sans-serif']
+                    body: ['Inter', 'sans-serif'],
+                    mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
                 },
                 boxShadow: {
                     card: '0 1px 2px rgba(33,26,20,0.04), 0 4px 16px rgba(33,26,20,0.06)'
@@ -32,7 +34,7 @@
     </script>
 </head>
 <body class="min-h-screen bg-page text-ink font-body antialiased">
-    <nav class="border-b border-ink/[0.06] bg-white/70 backdrop-blur">
+    <nav class="border-b border-ink/[0.06] bg-white/70 backdrop-blur"
         <div class="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
             <a href="/" class="font-display text-lg font-bold text-ink tracking-tight">
                 App<span class="text-clay">Curfew</span>

@@ -1,13 +1,13 @@
 #extend("base"):
 #export("title"):Home#endexport
 #export("content"):
-<div class="max-w-2xl mx-auto mt-16 text-center">
+<section class="max-w-2xl mx-auto mt-16 text-center">
     <h1 class="font-display text-4xl font-bold text-ink mb-4">
-        Screen time that <span class="text-clay">works for families</span>
+        Screen time control for Linux
     </h1>
-    <p class="text-ink-muted text-lg mb-10">
-        AppCurfew is a simple way to set daily limits, allowed days, and time windows
-        for the apps on your kids' devices — and adjust them in seconds when life happens.
+    <p class="text-ink-muted text-lg mb-8">
+        A self-hosted screen time manager for Flatpak apps on Linux. Set limits, schedules,
+        and exceptions from one dashboard — enforced by a lightweight script on your child's machine.
     </p>
     <div class="flex items-center justify-center gap-3">
         <a href="/login"
@@ -19,6 +19,39 @@
             Register
         </a>
     </div>
+</section>
+
+<div class="max-w-2xl mx-auto mt-12">
+    <div class="rounded-xl bg-ink shadow-card overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+            <span class="h-3 w-3 rounded-full bg-[#FF5F56]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#FFBD2E]"></span>
+            <span class="h-3 w-3 rounded-full bg-[#27C93F]"></span>
+            <span class="ml-2 text-xs text-cream/40 font-mono">appcurfew-agent</span>
+        </div>
+        <div class="px-5 py-4 font-mono text-sm leading-relaxed text-cream">
+            <div><span class="text-cream/50">$</span> appcurfew-agent --daemon</div>
+            <div><span class="text-sage">✓</span> authenticated as child profile</div>
+            <div><span class="text-sage">✓</span> checking allowed apps... steam, discord</div>
+            <div><span class="text-sage">✓</span> com.valvesoftware.Steam is allowed <span class="text-cream/50">(42m left)</span></div>
+            <div><span class="text-red-400">✗</span> blocking org.chromium.Chromium <span class="text-cream/50">(not on list)</span></div>
+        </div>
+    </div>
 </div>
+
+<section class="max-w-3xl mx-auto mt-16 grid gap-10 sm:grid-cols-3">
+    <div>
+        <h3 class="font-display text-base font-semibold text-ink mb-1.5">Daily time limits</h3>
+        <p class="text-sm text-ink-muted">Give each app a daily allowance and let the agent count it down as it's used.</p>
+    </div>
+    <div>
+        <h3 class="font-display text-base font-semibold text-ink mb-1.5">Day &amp; time scheduling</h3>
+        <p class="text-sm text-ink-muted">Restrict apps to certain days and set availability windows for after school or weekends.</p>
+    </div>
+    <div>
+        <h3 class="font-display text-base font-semibold text-ink mb-1.5">Self-hosted &amp; private</h3>
+        <p class="text-sm text-ink-muted">Runs on your own hardware. Your family's data never leaves the machine you control.</p>
+    </div>
+</section>
 #endexport
 #endextend
