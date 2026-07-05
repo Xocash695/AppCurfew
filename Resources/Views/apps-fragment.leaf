@@ -1,0 +1,61 @@
+<div class="space-y-3 mb-12" id="apps-list"
+     hx-get="/children/#(child.id)/apps-fragment"
+     hx-trigger="every 10s"
+     hx-swap="outerHTML">
+#for(app in apps):
+    <div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-4 flex items-center justify-between gap-4">
+        <div>
+            <div class="font-medium text-ink">#(app.appIdentifier)</div>
+            <div class="text-sm text-ink-muted mt-0.5">
+               #if(app.limitFormatted):
+                    <span class="text-clay">#(app.remainingFormatted)</span> of #(app.limitFormatted) left today
+               #else:
+                    No time limit
+               #endif
+                ·
+                #if(app.allowedDays):
+                    #for(day in app.allowedDays):<span class="inline-block rounded bg-ink/[0.05] px-1.5 py-0.5 text-xs mr-1">#(day)</span>#endfor
+                #else:
+                    every day
+                #endif
+                #if(app.availableFrom || app.availableUntil):
+                    #if(app.availableFrom):
+                        #(app.availableFrom)
+                    #endif
+                    –
+                    #if(app.availableUntil):
+                        #(app.availableUntil)
+                    #endif
+            #endif
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            #if(app.bypassActive):
+                <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/unbypass">
+                    <button type="submit"
+                            class="rounded-lg border border-sage px-3 py-1.5 text-sm text-sage-600 bg-sage/5 transition">
+                        Bypass active — click to restore limits
+                    </button>
+                </form>
+            #else:
+                <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/bypass">
+                    <button type="submit"
+                            class="rounded-lg border border-ink/15 px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:border-teal/60 transition">
+                        Bypass limits for now
+                    </button>
+                </form>
+            #endif
+            <a href="/children/#(child.id)?edit=#(app.id)"
+               class="rounded-lg border border-ink/15 px-3 py-1.5 text-sm text-ink-muted hover:text-ink hover:border-teal/60 transition">
+                Edit
+            </a>
+            <form method="POST" action="/dashboard/children/#(child.id)/allowed-apps/#(app.id)/delete">
+                <button type="submit"
+                        class="rounded-lg border border-red-500/40 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/10 transition">
+                    Remove
+                </button>
+            </form>
+        </div>
+    </div>
+#endfor
+</div>

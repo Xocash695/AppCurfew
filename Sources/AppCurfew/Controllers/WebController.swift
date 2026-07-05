@@ -28,6 +28,7 @@ struct WebController: RouteCollection {
             routes.post("dashboard", "change-password", use: changePassword)
             routes.post("dashboard", "delete-account", use: deleteAccount)
             routes.get("children", ":childID", use: showChild)
+            routes.get("children", ":childID", "apps-fragment", use: childAppsFragment)
             routes.post("dashboard", "children", ":childID", "allowed-apps", use: addAllowedAppWeb)  // ← changed
             routes.post("dashboard", "children", ":childID", "allowed-apps", ":appID", "delete", use: deleteAllowedApp)
             routes.post("dashboard", "children", ":childID", "allowed-apps", ":appID", "edit", use: editAllowedApp)
@@ -371,20 +372,55 @@ struct WebController: RouteCollection {
         var sunday: Bool
     }
 
-    func showChild(req: Request) async throws -> View {
+    struct AppsFragmentContext: Encodable {
+        var child: ChildProfile
+        var apps: [AppDisplay]
+    }
+
+    func childAppsFragment(req: Request) async throws -> View {
         let user = try req.auth.require(User.self)
-        
+
         guard let childID = req.parameters.get("childID", as: UUID.self),
               let child = try await ChildProfile.find(childID, on: req.db),
               try child.$parent.id == user.requireID()
         else {
             throw Abort(.notFound)
         }
-        
+
         let apps = try await AllowedApp.query(on: req.db)
             .filter(\.$childProfile.$id == child.requireID())
             .all()
-        
+
+        let displayApps = apps.map { app in
+            AppDisplay(
+                id: app.id,
+                appIdentifier: app.appIdentifier,
+                remainingFormatted: app.remainingSeconds.map { formatDuration($0) },
+                limitFormatted: app.dailyLimitSeconds.map { formatDuration($0) },
+                allowedDays: app.allowedDays,
+                availableFrom: app.availableFrom,
+                availableUntil: app.availableUntil,
+                bypassActive: app.bypassActive
+            )
+        }
+
+        return try await req.view.render("apps-fragment", AppsFragmentContext(child: child, apps: displayApps))
+    }
+
+    func showChild(req: Request) async throws -> View {
+        let user = try req.auth.require(User.self)
+
+        guard let childID = req.parameters.get("childID", as: UUID.self),
+              let child = try await ChildProfile.find(childID, on: req.db),
+              try child.$parent.id == user.requireID()
+        else {
+            throw Abort(.notFound)
+        }
+
+        let apps = try await AllowedApp.query(on: req.db)
+            .filter(\.$childProfile.$id == child.requireID())
+            .all()
+
         let displayApps = apps.map { app in
             AppDisplay(
                 id: app.id,
@@ -470,6 +506,7 @@ struct WebController: RouteCollection {
             appIdentifier: form.appIdentifier,
             childProfileID: try child.requireID(),
             dailyLimitSeconds: dailyLimitSeconds,
+            
             allowedDays: days,
             availableFrom: availableFrom,
             availableUntil: availableUntil
@@ -543,9 +580,16 @@ struct WebController: RouteCollection {
         let availableFrom = form.availableFrom?.isEmpty == true ? nil : form.availableFrom
         let availableUntil = form.availableUntil?.isEmpty == true ? nil : form.availableUntil
 
+        // Capture how much has been used TODAY under the OLD limit, BEFORE overwriting.
+        // Usage is only counted if the app was last checked today; otherwise it's 0.
+        let usedSameDay = app.lastCheckedAt.map { Calendar.current.isDate($0, inSameDayAs: Date()) } ?? false
+        let usedToday = usedSameDay ? ((app.dailyLimitSeconds ?? 0) - (app.remainingSeconds ?? 0)) : 0
+
         // Update the existing row in place
         app.appIdentifier = form.appIdentifier
         app.dailyLimitSeconds = dailyLimitSeconds
+        // Re-derive remaining from the NEW limit minus what was already used today, clamped at 0.
+        app.remainingSeconds = max(0, (dailyLimitSeconds ?? 0) - usedToday)
         app.allowedDays = days
         app.availableFrom = availableFrom
         app.availableUntil = availableUntil

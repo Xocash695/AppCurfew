@@ -51,7 +51,10 @@
     }
 </script>
 <h2 class="font-display text-lg font-semibold text-ink mb-4">Allowed apps</h2>
-<div class="space-y-3 mb-12">
+<div class="space-y-3 mb-12" id="apps-list"
+     hx-get="/children/#(child.id)/apps-fragment"
+     hx-trigger="every 10s"
+     hx-swap="outerHTML">
 #for(app in apps):
     <div class="rounded-2xl bg-white shadow-card border border-ink/[0.05] p-4 flex items-center justify-between gap-4">
         <div>
