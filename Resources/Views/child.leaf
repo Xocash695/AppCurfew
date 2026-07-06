@@ -44,6 +44,11 @@
     function copyKey() {
         const code = document.getElementById('apiKey');
         const btn = document.getElementById('copyBtn');
+        if (!navigator.clipboard) {
+            btn.textContent = 'Copy not available over HTTP';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            return;
+        }
         navigator.clipboard.writeText(code.dataset.key).then(() => {
             btn.textContent = 'Copied!';
             setTimeout(() => { btn.textContent = 'Copy'; }, 1500);

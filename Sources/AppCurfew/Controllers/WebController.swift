@@ -39,13 +39,20 @@ struct WebController: RouteCollection {
     
     // MARK: - Landing
 
+    struct LandingContext: Encodable {
+        var registrationEnabled: Bool
+    }
+
     func landing(req: Request) async throws -> Response {
         // The global session authenticator has already populated req.auth if a
         // valid session exists — send signed-in users straight to their dashboard.
         if req.auth.has(User.self) {
             return req.redirect(to: "/dashboard")
         }
-        return try await req.view.render("landing").encodeResponse(for: req)
+
+        let settings = try await ServerSettings.query(on: req.db).first()
+        let context = LandingContext(registrationEnabled: settings?.registrationEnabled ?? true)
+        return try await req.view.render("landing", context).encodeResponse(for: req)
     }
 
     // MARK: - Login

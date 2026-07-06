@@ -35,12 +35,16 @@
     </script>
 </head>
 <body class="min-h-screen bg-page text-ink font-body antialiased">
-    <nav class="border-b border-ink/[0.06] bg-white/70 backdrop-blur"
+    <nav class="border-b border-ink/[0.06] bg-white/70 backdrop-blur">
         <div class="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
             <a href="/" class="font-display text-lg font-bold text-ink tracking-tight">
                 App<span class="text-clay">Curfew</span>
             </a>
-            ...
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="text-sm text-ink-muted hover:text-clay transition">Dashboard</a>
+                <a href="https://github.com/Xocash695/AppCurfew" target="_blank" rel="noopener noreferrer"
+                   class="text-sm text-ink-muted hover:text-clay transition">GitHub</a>
+            </div>
         </div>
     </nav>
     <main class="mx-auto max-w-3xl px-6 py-10">
