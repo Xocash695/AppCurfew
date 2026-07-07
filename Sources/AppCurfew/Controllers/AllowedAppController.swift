@@ -10,14 +10,19 @@ struct AllowedAppController: RouteCollection {
         childProtected.post("usage-report", use: reportUsage)
     }
     
-    func list(req: Request) async throws -> [String] {
+    struct AllowedAppStatus: Content {
+        var appIdentifier: String
+        var remainingSeconds: Int?   // nil = no limit currently applies (bypassed or unlimited)
+    }
+
+    func list(req: Request) async throws -> [AllowedAppStatus] {
         let child = try req.auth.require(ChildProfile.self)
-        
+
         let apps = try await AllowedApp.query(on: req.db)
             .filter(\.$childProfile.$id == child.requireID())
             .all()
-        
-        var allowedNames: [String] = []
+
+        var allowedApps: [AllowedAppStatus] = []
         let now = Date()
         let todayWeekdayNumber = Calendar.current.component(.weekday, from: now)
         let timeFormatter = DateFormatter()
@@ -27,7 +32,7 @@ struct AllowedAppController: RouteCollection {
         for app in apps {
             // Manual bypass short-circuits every other restriction
             if app.bypassActive {
-                allowedNames.append(app.appIdentifier)
+                allowedApps.append(AllowedAppStatus(appIdentifier: app.appIdentifier, remainingSeconds: nil))
                 continue
             }
 
@@ -44,23 +49,23 @@ struct AllowedAppController: RouteCollection {
 
             // existing time-limit logic continues below, unchanged
             guard app.dailyLimitSeconds != nil else {
-                allowedNames.append(app.appIdentifier)
+                allowedApps.append(AllowedAppStatus(appIdentifier: app.appIdentifier, remainingSeconds: nil))
                 continue
             }
-            
+
             if let lastChecked = app.lastCheckedAt, Calendar.current.isDate(lastChecked, inSameDayAs: now) {
                 if let remaining = app.remainingSeconds, remaining > 0 {
-                    allowedNames.append(app.appIdentifier)
+                    allowedApps.append(AllowedAppStatus(appIdentifier: app.appIdentifier, remainingSeconds: remaining))
                 }
             } else {
                 app.remainingSeconds = app.dailyLimitSeconds
                 app.lastCheckedAt = now
                 try await app.save(on: req.db)
-                allowedNames.append(app.appIdentifier)
+                allowedApps.append(AllowedAppStatus(appIdentifier: app.appIdentifier, remainingSeconds: app.remainingSeconds))
             }
         }
-        
-        return allowedNames
+
+        return allowedApps
     }
     
     struct UsageReportRequest: Content {
