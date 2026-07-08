@@ -89,13 +89,16 @@ struct AllowedAppController: RouteCollection {
             throw Abort(.notFound)
         }
         
+        // Bypassed apps don't consume their daily budget at all.
+        guard !app.bypassActive else {
+            return UsageReportResponse(remainingSeconds: nil)
+        }
+        
         let now = Date()
         
         if let lastChecked = app.lastCheckedAt, Calendar.current.isDate(lastChecked, inSameDayAs: now) {
-            // same day — subtract reported usage
             app.remainingSeconds = (app.remainingSeconds ?? 0) - input.secondsUsed
         } else {
-            // new day — reset first, then subtract this usage
             app.remainingSeconds = (app.dailyLimitSeconds ?? 0) - input.secondsUsed
         }
         
